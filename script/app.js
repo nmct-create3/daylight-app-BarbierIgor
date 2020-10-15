@@ -13,6 +13,14 @@ function _parseMillisecondsIntoReadableTime(timestamp) {
 	return hours.substr(-2) + ':' + minutes.substr(-2); //  + ':' + s
 }
 
+//zet tijd om
+const _convertTime = (y) => {
+	const time = new Date('0001-01-01 ' +t);
+	const formatted = time.getHours() + ':' + ('0' + time.getMinutes()).slice(-2);
+	return formatted;
+}
+
+
 // 5 TODO: maak updateSun functie
 
 // 4 Zet de zon op de juiste plaats en zorg ervoor dat dit iedere minuut gebeurt.
@@ -30,19 +38,25 @@ let placeSunAndStartMoving = (totalMinutes, sunrise) => {
 };
 
 // 3 Met de data van de API kunnen we de app opvullen
-let showResult = queryResponse => {
+const showResult = queryResponse => {
 	// We gaan eerst een paar onderdelen opvullen
 	// Zorg dat de juiste locatie weergegeven wordt, volgens wat je uit de API terug krijgt.
+	document.querySelector('.js-location').innerText = `${queryResponse.city.name}, ${queryResponse.city.country}`
+	document.querySelector('.js-sunrise').innerText = _parseMillisecondsIntoReadableTime(queryResponse.city.sunrise)
+	document.querySelector('.js-sunset').innerText = _parseMillisecondsIntoReadableTime(queryResponse.city.sunset)
 	// Toon ook de juiste tijd voor de opkomst van de zon en de zonsondergang.
 	// Hier gaan we een functie oproepen die de zon een bepaalde positie kan geven en dit kan updaten.
 	// Geef deze functie de periode tussen sunrise en sunset mee en het tijdstip van sunrise.
+	const timeDifference = (queryResponse.city.sunset - queryResponse.city.sunrise) / 60;
+	placeSunAndStartMoving(timeDifference, queryResponse.city.sunrise)
 };
 
 // 2 Aan de hand van een longitude en latitude gaan we de yahoo wheater API ophalen.
-let getAPI = (lat, lon) => {
+const getAPI = async (lat, lon) => {
 	// Eerst bouwen we onze url op
-	// Met de fetch API proberen we de data op te halen.
+		const data = await fetch(`http://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${key}&units=metric&lang=nl&cnt=1`).then((r) => r.json()).catch((err) => console.error(`An error occuren: `, err))
 	// Als dat gelukt is, gaan we naar onze showResult functie.
+	showResult(data)
 };
 
 document.addEventListener('DOMContentLoaded', function() {
